@@ -24,7 +24,6 @@ func GenerateToken(username string) (token string, err error) {
 	if err != nil {
 		println(err)
 	}
-	println(token)
 	return
 }
 func ParseToken(token string) (jwtToken *JwtToken) {

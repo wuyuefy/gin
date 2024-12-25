@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"web/utils"
 )
 
 var db *gorm.DB
 var err error
 
 func init() {
-	dns := "root:123@tcp(192.168.2.100:3306)/store_manage?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err = gorm.Open(mysql.Open(dns), &gorm.Config{
+	db, err = gorm.Open(mysql.Open(utils.GetDns()), &gorm.Config{
 		QueryFields: true,
 	})
 	if err != nil {

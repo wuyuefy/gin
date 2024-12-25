@@ -19,7 +19,3 @@ func TestParseToken(t *testing.T) {
 	}
 	fmt.Println(string(jsonByte))
 }
-
-func TestConfig(t *testing.T) {
-	test()
-}

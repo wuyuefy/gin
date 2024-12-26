@@ -12,33 +12,33 @@ func GetUser(context *gin.Context) {
 	if err != nil {
 		println(err)
 	}
-	database.GetUser(&user)
+	database.FindUser(&user)
 	context.JSON(200, user)
 }
-func DelUser(context *gin.Context) {
+func PostUser(context *gin.Context) {
 	user := model.User{}
 	err := context.Bind(&user)
 	if err != nil {
 		println(err)
 	}
-	database.GetUser(&user)
+	database.CreateUser(&user)
 	context.JSON(200, user)
 }
-func AddUser(context *gin.Context) {
+func DeleteUser(context *gin.Context) {
 	user := model.User{}
 	err := context.Bind(&user)
 	if err != nil {
 		println(err)
 	}
-	database.GetUser(&user)
+	database.DeleteUser(&user)
 	context.JSON(200, user)
 }
-func ModifyUser(context *gin.Context) {
+func PutUser(context *gin.Context) {
 	user := model.User{}
 	err := context.Bind(&user)
 	if err != nil {
 		println(err)
 	}
-	database.GetUser(&user)
+	database.UpdateUser(&user)
 	context.JSON(200, user)
 }

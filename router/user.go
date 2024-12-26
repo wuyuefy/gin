@@ -5,20 +5,20 @@ import (
 )
 
 func initUser() {
+	postUser()
+	deleteUser()
 	getUser()
-	modifyUser()
-	addUser()
-	delUser()
+	putUser()
 }
 func getUser() {
 	userRouter.GET("", api.GetUser)
 }
-func delUser() {
-	userRouter.DELETE("", api.DelUser)
+func deleteUser() {
+	userRouter.DELETE("", api.DeleteUser)
 }
-func addUser() {
-	userRouter.POST("", api.AddUser)
+func postUser() {
+	userRouter.POST("", api.PostUser)
 }
-func modifyUser() {
-	userRouter.PUT("", api.ModifyUser)
+func putUser() {
+	userRouter.PUT("", api.PutUser)
 }

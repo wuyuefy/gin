@@ -13,7 +13,7 @@ func Login(context *gin.Context) {
 	if err != nil {
 		println(err)
 	}
-	user := database.GetUser(&query)
+	user := database.FindUser(&query)
 	if user.Username == "" {
 		fail(context, 100, "用户名密码错误")
 		return

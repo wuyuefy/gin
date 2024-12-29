@@ -325,19 +325,19 @@ let utils = {
             this.processMessage()
         }))
     },
-    success(msg, position="top", timer=5000) {
+    success(msg, position = "top", timer = 5000) {
         this.messageQueue.push({msg, position, timer, type: 'success', title: '成功'})
         this.processMessage()
     },
-    waring(msg, position="top", timer=5000) {
+    waring(msg, position = "top", timer = 5000) {
         this.messageQueue.push({msg, position, timer, type: 'waring', title: '警告'})
         this.processMessage()
     },
-    info(msg, position="top", timer=5000) {
+    info(msg, position = "top", timer = 5000) {
         this.messageQueue.push({msg, position, timer, type: 'info', title: '消息'})
         this.processMessage()
     },
-    error(msg, position="top", timer=5000) {
+    error(msg, position = "top", timer = 5000) {
         this.messageQueue.push({msg, position, timer, type: 'error', title: '错误'})
         this.processMessage()
     },
@@ -633,7 +633,7 @@ let init = {
         Swal.fire({
             title: '基础配置信息', html, // icon: 'info',
             showCloseButton: true, confirmButtonText: '保存', // footer: '页脚',
-        }).then(()=>{
+        }).then(() => {
             utils.isMessageShowing = false
         })
         document.querySelector('#shipAndSoldCheck').addEventListener('change', (e) => {
@@ -701,7 +701,7 @@ let dianxiaomi = {
         brand: "",
         price: "",
         feature: [],
-        selection: [],
+        selection: {},
         count: 0,
         async crawl() {
             if (utils.get("temuStore") === "不自动认领") {
@@ -778,7 +778,7 @@ let dianxiaomi = {
                 // showCloseButton: true,
                 // confirmButtonText: '保存',
                 // footer: '页脚',
-            }).then(()=>{
+            }).then(() => {
                 utils.isMessageShowing = false
             })
             document.querySelectorAll(`[name="unprocess"]`).forEach(item => {
@@ -789,6 +789,14 @@ let dianxiaomi = {
                     ele.remove()
                 }
             })
+        },
+        getAsin(){
+            let  url = document.querySelector('#sourceUrl0')
+            let asin = (url.value.match(/.*\/dp\/(.*)[?/]/) ?? url.value.match(/.*\/dp\/(.*)/))
+            if (asin && asin.length>1){
+                return asin[1]
+            }
+            return null
         },
         addInfo(data) {
             let divEle = document.createElement("div")
@@ -863,12 +871,44 @@ let dianxiaomi = {
             return childDiv
         },
         selected() {
-            let selects = document.querySelectorAll(`#skuParameterDom input[name="addSkuVal"]:checked`)
+            if (!utils.isNotEmpty(this.selection)) {
+                return
+            }
             let values = Object.values(this.selection)
-            selects.forEach(item => {
-                let select = item.nextElementSibling.innerText.trim()
-                if (!values.includes(select)) {
-                    item.click()
+            let trs = document.querySelectorAll(`#skuParameterDom table tr`)
+            trs.forEach(tr => {
+                let inputs = tr.querySelectorAll(`input:checked`)
+                if (inputs.length <= 1) {
+                    return
+                }
+                let matches = []
+                let noMatches = []
+                inputs.forEach(input => {
+                    let select = input.nextElementSibling.innerText.trim()
+                    let match = false
+                    values.forEach(value => {
+                        if (select.includes(value)) {
+                            if (select.includes("(")) {
+                                if (select.startsWith(`${value}(`)) {
+                                    match = true
+                                }
+                            } else {
+                                if (select === value) {
+                                    match = true
+                                }
+                            }
+                        }
+                    })
+                    if (match) {
+                        matches.push(input)
+                    } else {
+                        noMatches.push(input)
+                    }
+                })
+                if (matches.length > 0 && noMatches.length > 0) {
+                    noMatches.forEach(item => {
+                        item.click()
+                    })
                 }
             })
         },
@@ -923,10 +963,15 @@ let dianxiaomi = {
                 utils.error("发生异常, 退出脚本")
                 return
             }
-            let id = idEle.value
             let common = dianxiaomi.common
-            common.asin = utils.get(id)
-            let data = utils.get(common.asin)
+            let id = idEle.value
+            let asin = utils.get(id) ?? common.getAsin()
+            if (asin){
+                utils.error("获取 asin 出现异常, 退出脚本")
+                return
+            }
+            let data = utils.get(asin)
+            common.asin = asin
             common.price = data.base.price
             common.feature = data.feature
             common.selection = data.selection
@@ -1022,11 +1067,13 @@ let dianxiaomi = {
 
 // start
 (async () => {
+    if (!await utils.verify()) {
+        return
+    }
     init.start()
     let pathname = document.location.pathname
     let domainName = document.location.hostname
-    switch (await utils.verify()) {
-    // switch (true) {
+    switch (true) {
         // 数据采集
         case pathname.includes('crawl/index.htm'):
             await dianxiaomi.common.crawl()

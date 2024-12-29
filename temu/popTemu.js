@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         本土 - 店小秘自定义插件
+// @name         跨境 - 店小秘自定义插件
 // @namespace    http://tampermonkey.net/
 // @version      2024-11-13
-// @description  店小秘 本土店 编辑设置初始化
+// @description  店小秘 跨境店 编辑设置初始化
 // @author       You
 // @match        https://www.tampermonkey.net/index.php?version=5.3.6216&ext=gcal&updated=true
-// @match        https://www.dianxiaomi.com/localTemuProduct/edit.*
+// @match        https://www.dianxiaomi.com/popTemuProduct/edit.*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        none
 // ==/UserScript==
@@ -15,7 +15,6 @@
     const stock = 3
     let data = {}
     let initTrs = 0
-    let sku = ""
 
     function getArgs(){
         // 获取每一行 table
@@ -24,8 +23,7 @@
         // 获取 sku
         let shopUrl = document.querySelector('#sourceUrl0')
         let url = shopUrl.value
-        sku = (url.match(/.*\/dp\/(.*)[?/]/) ?? url.match(/.*\/dp\/(.*)/))[1]
-
+        let sku = (url.match(/.*\/dp\/(.*)[?/]/) ?? url.match(/.*\/dp\/(.*)/))[1]
         // 为每一行 设置对应的值
         trs.forEach(i => {
             let key = i.getAttribute('trid')
@@ -37,11 +35,11 @@
             let sizeList = [length.value, width.value, height.value].sort((x,y)=> y-x)
             sizeList.forEach((num, index, arr) => {
                 if (num && num < 0.3) arr[index] = 0.3
-                if (num && num > 9999) arr[index] = 9999
+                if (num && num > 899) arr[index] = 899
             })
             data[key] = {
                 'sku': sku,
-                'price': price.value * 2,
+                'price': price.value,
                 'stock': stock,
                 'length': sizeList[0],
                 'width': sizeList[1],
@@ -69,12 +67,31 @@
             let sizeList = [length.value, width.value, height.value].sort((x,y)=> y-x)
             sizeList.forEach((num, index, arr) => {
                 if (num && num < 0.3) arr[index] = 0.3
-                if (num && num > 9999) arr[index] = 9999
+                if (num && num > 899) arr[index] = 899
             })
             length.value = sizeList[0]
             width.value = sizeList[1]
             height.value = sizeList[2]
         })
+    }
+    // 引用轮播图修改
+    async function changeMapImage(tr){
+        let mapImage = tr.querySelector('a[onclick^="POP_TEMU_PRODUCT_IMAGE_UP.imageFn.uploadImg(6, this);"]')
+        let checkedImg = document.querySelector(`input[data-checkindex]:checked`)
+        if(mapImage && checkedImg){
+            mapImage.click()
+            // 引用轮播图第一张
+            let selectedFirst = checkedImg.parentNode.parentNode.querySelector(`img`)
+            let imgName = selectedFirst.getAttribute("src").match(/.*[/](.*.jpg)/)[1]
+            // 点击图片
+            await waitForElement('#quoteImg0 input')
+            document.querySelector(`#quoteImageDiv img[src$="${imgName}"]`).click()
+            // 确定图片
+            document.querySelector('button[onclick^="PRODUCT_QUOTE_IMG.quoteImageConfirm();"]').click()
+            // 刷新素材图
+            document.querySelector('a[onclick^="POP_TEMU_PRODUCT_FN.productFn.updateMaterialImg();"]').click()
+
+        }
     }
     // 为 变种属性 选择绑定 onclick
     function bindOncli(){
@@ -86,78 +103,21 @@
                 i.onclick = modTable
             })
         }else{
-            inputs[0].onclick = modTable
+            inputs.forEach(i => i.onclick = modTable)
         }
-    }
-    // 检测产品是否需要说明书
-    function checkProductFileTd(){
-        let td = document.querySelector('.productFileTd')
-        if(td.classList.contains('must')){
-            if(confirm("该商品需要说明书, 是否关闭该页面")){
-                window.close()
-            }else{
-
-            }
-        }
-    }
-    // 设置 sku 为 Product ID
-    function setVariationSku(){
-        let productId = document.querySelector('.extraTemplateAttrSelectIpt')
-        let button = document.querySelector('.extraTemplateAttrButton')
-        productId.value = sku
-        button.click()
-    }
-    // 设置安全信息和电池信息
-    function setOtherExtraAttrIptSel(){
-        let Warning = document.querySelector('tr[templateid="36"] option[data-name="View Product Details Page"]')
-        let Waste  = document.querySelector('tr[templateid="207"] option[data-name="Information Not Applicable"]')
-        if(Warning){
-            Warning.selected = true
-        }
-        if(Waste){
-            Waste.selected = true
-        }
-    }
-    // 设置运输运输信息
-    function setTransportInformation(){
-        let timeTwoDay = document.querySelector('input[type=radio][name=deliveryTime][value="2"]')
-        let templateSelector = document.querySelectorAll('.transportInfoModule .menuListLi')
-        // templateSelector.forEach(i => {
-        //     if(i.innerText.indexOf('请选择') === -1){
-        //         i.click()
-        //         return
-        //     }
-        // })
-        templateSelector[1].click()
-        timeTwoDay.checked = true
-    }
-    // 删除图片
-    function delSlideshow(){
-        let imgs = document.querySelectorAll("#skuImgContent .variantImgDelBtn")
-        imgs.forEach(i => i.click())
-    }
-    // 删除部分描述信息
-    function delDesc(){
-        let textareas = document.querySelectorAll("#productDetailBox textarea")
-        textareas[0].value = ""
-        textareas[textareas.length-1].value = ""
     }
     // 修改标题
     function modTitle(){
+        // 修改中文标题
         let title = document.querySelector('#productTitle')
-        title.value = title.value.replace(/[^\s\w"']/g, "")
+        let noChineseSymbol = title.value = title.value.replace(/[^\s\w"']/g, "")
+        title.value = noChineseSymbol
+        // 修改英文标题
+        let titleI18n = document.querySelector('#productI18n')
+        titleI18n.value = noChineseSymbol
+        // debugger
     }
-    // 跳过资质信息
-    function skipGoodsInfoTr(){
-        let skip = document.querySelectorAll('.skipGoodsInfoTr input')
-        if(!skip){
-            return
-        }
-        skip.forEach(i => {
-            if(!i.checked) i.click()
-        })
-    }
-    // 删除产品名按钮
+    // 添加删除产品名按钮
     function delBrandBtn(){
         let maodian = document.querySelector('.maodian')
         let div = maodian.nextElementSibling
@@ -170,38 +130,39 @@
         div.append(childDiv)
         // 调用删除产品名功能
         childDiv.onclick = delBrand
-
     }
     // 删除产品名
     function delBrand(){
-        const barnd = prompt("请输入产品名字")
+        const barnd = prompt("请输入产品名字").replace(/[^\w\s]/, '.')
+        let reg = new RegExp(barnd, 'gi')
         let title = document.querySelector('#productTitle')
-        let textareas = document.querySelectorAll("#productDetailBox textarea")
-        title.value = title.value.replace(barnd, "")
-        textareas.forEach(i => i.value = i.value.replace(barnd, ""))
-    }
-    // 批量清空重新引用前五张图片
-    function cleanSelectBtn(){
-        let maodian = document.querySelector('.maodian')
-        let div = maodian.nextElementSibling
-        let childDiv = document.createElement('div')
-        childDiv.classList.add('navIcon', 'toSubmit', 'btn-plain')
-        childDiv.innerHTML = '重新引用'
-        childDiv.style.fontSize='10px'
-        childDiv.style.textAlign ='center'
-        childDiv.id = 'cleanSelectBtn'
-        div.append(childDiv)
-        // 调用批量编辑确定按钮
-        childDiv.onclick = async () => {
-            // 拿到所有图片进行删除图片
-            document.querySelectorAll(`a[onclick^="LOCAL_TEMU_PRODUCT_IMAGE_UP.imageFn.delImg(this, 'productImg');"]`).forEach(i => i.click())
-            // 采集引用图片
-            document.querySelector(`a[onclick^="PRODUCT_QUOTE_IMG.quoteImageFn(2, LOCAL_TEMU_PRODUCT_IMAGE_UP.imageFn.proImgSpaceFromConfirm, '|');"]`).click()
-            // 获取所有引用图片 并且转成数组, 点击选中前5张
-            Array.from(document.querySelectorAll(`#quoteImageDiv input`)).slice(0,5).forEach(i => i.click())
-            // 确认选择
-            document.querySelector(`button[onclick^="PRODUCT_QUOTE_IMG.quoteImageConfirm();"]`).click()
+        let titleI18n = document.querySelector('#productI18n')
+        title.value = title.value.replace(reg, "")
+        titleI18n.value = titleI18n.value.replace(reg, "")
+        // 删除显示描述
+        let desc = document.querySelector('#wirelessDescContentBox')
+        let divs = desc.querySelectorAll('div')
+        divs.forEach(i=>i.innerText = i.innerText.replace(reg, ""))
+        if(divs.length > 1){
+            let texts = divs[divs.length-1].innerText.split('\n')
+            if (texts.length) {
+                divs[divs.length-1].innerText = texts.slice(0,-1).join('\n')
+            } else {
+                divs[divs.length-1].remove()
+            }
         }
+        // 删除实际描述
+        let dataList = JSON.parse(desc.getAttribute('data-list'))
+        dataList.forEach(i => i['cont']['text'] = i['cont']['text'].replace(reg, ""))
+        if(dataList.length > 1){
+            let texts = dataList[dataList.length-1]['cont']['text'].split('\n')
+            if (texts.length > 1) {
+                dataList[dataList.length-1]['cont']['text'] = texts.slice(0,-1).join('\n')
+            } else {
+                dataList.pop()
+            }
+        }
+        desc.setAttribute('data-list', JSON.stringify(dataList))
     }
     // 添加修改尺寸
     function changeSizeBtn(){
@@ -216,12 +177,21 @@
         div.append(childDiv)
         // 调用批量修改
         childDiv.onclick = async () => {
-            document.querySelector(`li[onclick^="IMGRESIZE.modalBuild('resizeOut', LOCAL_TEMU_PRODUCT_FN.skuFn.resizecall, 'localTemu');"]`).click()
+            // 删除未选中的
+            document.querySelectorAll(`input[name=selectedImg]`).forEach(i => {
+                if (!i.checked) {
+                    i.parentNode.parentNode.querySelector(".imgDivDown a[onclick]").click()
+                }
+            })
+            // 点击编辑
+            document.querySelector(`li[onclick^="IMGRESIZE.modalBuild('resizeOut', POP_TEMU_PRODUCT_FN.skuFn.resizecall, 'popTemu');"]`).click()
             let td = document.querySelector(`.resizeImgList`)
             let loadDivs = td.querySelectorAll('[data-type=load]')
-            while(!(loadDivs.length == td.querySelectorAll("div[data-type=ready]").length)){
+            // 等待选中数量一致
+            while(loadDivs.length !== td.querySelectorAll("div[data-type=ready]").length){
                 await sleep(200)
             }
+            // 确定修改
             document.querySelector(`button[onclick^="IMGRESIZE.beforeResize(this, true, 'jpeg');"]`).click()
         }
     }
@@ -237,69 +207,15 @@
         childDiv.id = 'editorBtn'
         div.append(childDiv)
         // 调用批量编辑确定按钮
-        childDiv.onclick = async () => {
-            // 点击批量编辑
+        childDiv.onclick = () => {
             document.querySelector(`li[onclick^="TOAST_IMAGE_EDITOR.onBatchEditImage('#myjDrop', '.tuiImageBox', null, true)"]`).click()
-            // 获取选中的图片
-            let checkedImgs = []
-            // 获取所有图片
-            let selected = document.querySelectorAll('[name="selectedImg"]')
-            for(let i=0; i < selected.length; i++){
-                if(selected[i].checked){
-                    checkedImgs.push(i)
-                }
-            }
-            // 获取批量编辑窗口
+            let checkImgs = document.querySelectorAll(`input[data-checkindex]`)
             let div = document.querySelector('.modalBodyBsm')
-            checkedImgs.forEach(i =>{
-                // 根据存储的索引选择图片
-                div.querySelector(`img[data-id="${i}"]`).click()
+            checkImgs.forEach(i =>{
+                let index = i.getAttribute("data-checkindex") - 1
+                div.querySelector('img[data-id="'+index+'"]').click()
             })
             div.parentElement.querySelector('.btnConfirmBsm').click()
-        }
-    }
-    // 在 sku 轮播图中选出 描述图片
-    function skuImgsforDescImgBtn(){
-        let maodian = document.querySelector('.maodian')
-        let div = maodian.nextElementSibling
-        let childDiv = document.createElement('div')
-        childDiv.classList.add('navIcon', 'toSubmit', 'btn-gray')
-        childDiv.innerHTML = '轮播图'
-        childDiv.style.fontSize='10px'
-        childDiv.style.textAlign ='center'
-        childDiv.id = 'changeSizeBtn'
-        div.append(childDiv)
-        // 调用批量修改
-        childDiv.onclick = async () => {
-            // 点击图片空间
-            document.querySelectorAll(`#skuImgBox a[onclick^="LOCAL_TEMU_PRODUCT_IMAGE_UP.imageFn.uploadSkuImg(2, this);"]`).forEach(async (i) => {
-                i.click()
-                // 获取所有图片
-                let selected = document.querySelectorAll('[data-names=auxiliaryImg]')
-                // 获取选中的图片
-                let checkedImgs = []
-                for(let i=0; i < selected.length; i++){
-                    let name = selected[i].getAttribute("src").match(/.*[/](.*.jpg)/)[1]
-                    if(name){
-                        checkedImgs.push(name)
-                    }
-                }
-                // 获取图片空间节点
-                await waitForElement(`#commProductMyFrame`)
-                let iframe = document.querySelector(`#commProductMyFrame`)
-                iframe.onload = async () => {
-                    let div = iframe.contentDocument.querySelector("#rightBody")
-                    checkedImgs.forEach(async (i)  => {
-                        // 根据选中的图片来选取 sku 轮播图
-                        div.querySelector(`img[src$="${i}"]`).click()
-                    });
-                    while(div.querySelectorAll(".imgHome:checked").length !== checkedImgs.length){
-                        await sleep(200)
-                    }
-                    // 点击确定
-                    document.querySelector(`button[onclick^="PRODUCT_COMM.imgSpaceFromConfirm();"]`).click()
-                }
-            })
         }
     }
     // 添加立即发布
@@ -308,7 +224,7 @@
         let div = maodian.nextElementSibling
         let childDiv = document.createElement('div')
         childDiv.classList.add('navIcon', 'toSubmit', 'btn-green')
-        childDiv.innerHTML = '发<br/>布'
+        childDiv.innerHTML = '立即发布'
         childDiv.style.fontSize='10px'
         childDiv.style.textAlign ='center'
         childDiv.id = 'customPublishButton'
@@ -318,50 +234,30 @@
         let publishBtn = btn.querySelector('[data-value=save-2]')
         childDiv.onclick = () => publishBtn.click()
     }
-
     // 初始化
-    function init(){
-        // 检查产品说明书
-        checkProductFileTd()
+    async function init(){
         // 添加删除产品名按钮
         delBrandBtn()
-        // 批量清空重新引用前五张图片
-        cleanSelectBtn()
         // 添加修改尺寸按钮
         changeSizeBtn()
         // 添加批量编辑按钮
         editorBtn()
-        // 在 sku 轮播图中选出 描述图片
-        skuImgsforDescImgBtn()
         // 添加发布按钮
         addPublishBtn()
-        // 获取变种信息
-        getArgs()
-        // 跳过信息
-        skipGoodsInfoTr()
-        // 删除描述
-        delDesc()
-        // 删除图片
-        delSlideshow()
-        // 设置运输信息
-        setTransportInformation()
-        // 设置 sku 为 Product ID
-        setVariationSku()
-        // 设置安全信息和电池信息
-        setOtherExtraAttrIptSel()
-        // 修改标题
+        // 标题修改
         modTitle()
-        // 绑定点击事件到变种信息多选框
+        // 获取变体数据
+        getArgs()
+        // 变体选择绑定点击事件
         bindOncli()
     }
+
     // start
     (async () => {
         await waitForElement('#customTheme table tbody tr')
         await waitForElement('#skuInfoTable tbody tr')
-        await waitForElement('.extraTemplateAttrSelectIpt')
         init()
     })()
-
 
     // 点击触发修改 table 信息
     async function modTable(evn, key){
@@ -384,12 +280,25 @@
         tr.querySelector('input[name=skuWidth]').value = data[key]['width']
         tr.querySelector('input[name=skuHeight]').value = data[key]['height']
         tr.querySelector('input[name=weight]').value = data[key]['weight']
-        tr.querySelector('input[name=stock]').value = data[key]['stock']
-        tr.querySelector('input[name=salePrice]').value = null
         // 绑定事件
         tr.querySelector('input[name=skuLength]').onchange = sortSize
         tr.querySelector('input[name=skuWidth]').onchange = sortSize
         tr.querySelector('input[name=skuHeight]').onchange = sortSize
+
+        // 修改引用图片
+        changeMapImage(tr)
+        // 修改库存
+        let stockSelector = '#skuOrderInfoTable tr[trid$="' + key +'"]'
+        await waitForElement(stockSelector)
+        let trs = document.querySelectorAll("#skuOrderInfoTable tbody tr")
+        trs.forEach(i => {
+            let stockInput = i.querySelector('input[name=stock]')
+            stockInput.value = data[key]['stock']
+            let warehouseId = stockInput.getAttribute('data-warehouse')
+            // 实际修改库存的位置
+            let inputH = i.querySelector('.warehouseStockQuantityReqs')
+            inputH.value = '[{"warehouseId":"'+warehouseId+'", "targetStockAvailable":"'+data[key]['stock']+'"}]'
+        })
     }
     // 自定义休眠函数
     function sleep(timeout) {

@@ -159,8 +159,11 @@ let amazon = {
         }
         price = parseFloat(price[1].trim())
         if (deliveryPrice) {
-            deliveryPrice = deliveryPrice.innerText.match(/.(\d+[.]\d{0,2})/)
+            console.log("111111111111111111111111111111", deliveryPrice)
+            deliveryPrice = deliveryPrice.innerText.match(/.(\d+[.]\d{0,2}) delivery/)
+            console.log(deliveryPrice)
             if (deliveryPrice && deliveryPrice.length === 2) {
+                console.log(parseFloat(deliveryPrice[1].trim()))
                 price += parseFloat(deliveryPrice[1].trim())
             }
         }
@@ -217,7 +220,8 @@ let amazon = {
         // B0B6CV1W1L
         // https://www.amazon.com/dp/B018LNFQWE?th=1
         let rightCol = document.querySelector(`#rightCol`)
-        return this.checkStock(rightCol) || this.getData(rightCol) || this.checkShipsAndSold(rightCol) || this.getPrice(rightCol)
+        this.getPrice(rightCol)
+        return this.checkStock(rightCol) || this.getData(rightCol) || this.checkShipsAndSold(rightCol)
     },
     // 获取商品信息
     getGoodsInfo() {
@@ -337,7 +341,7 @@ let utils = {
         this.messageQueue.push({msg, position, timer, type: 'info', title: '消息'})
         this.processMessage()
     },
-    error(msg, position = "top", timer = 5000) {
+    error(msg, position = "top", timer = 0) {
         this.messageQueue.push({msg, position, timer, type: 'error', title: '错误'})
         this.processMessage()
     },
@@ -966,7 +970,7 @@ let dianxiaomi = {
             let common = dianxiaomi.common
             let id = idEle.value
             let asin = utils.get(id) ?? common.getAsin()
-            if (asin){
+            if (!asin){
                 utils.error("获取 asin 出现异常, 退出脚本")
                 return
             }
@@ -997,6 +1001,9 @@ let dianxiaomi = {
             // 发布
             common.addBtn("立即发布", "green").onclick = () => {
                 document.querySelector('.page-btn-group-div [data-value=save-2]').click()
+                utils.del(common.asin)
+                let asins = (utils.get("asins")??[]).filter(item => item !== common.asin)
+                utils.set("asins", asins)
             }
 
             // 根据各平台特点实现修改尺寸功能 额外处理平台不同部分
@@ -1004,7 +1011,7 @@ let dianxiaomi = {
                 common.setSku()
                 common.modifyTitle()
                 if (common.count === 0) {
-                    utils.error(`品牌名称删除 0 次, 请注意手动检查修改, 使用品牌名: ${common.brand}`, "center", 0)
+                    utils.error(`品牌名称删除 0 次, 请注意手动检查修改, 使用品牌名: ${common.brand}`)
                 } else {
                     utils.success(`成功删除品牌名称 ${common.count} 次, 使用品牌名: ${common.brand}`, "center")
                 }

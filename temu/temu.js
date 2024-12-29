@@ -475,7 +475,6 @@ let init = {
         myStyle.innerHTML = `<style>
   /* 绿 弹出框背景颜色 */
   .success-popup {
-    z-index: 1050;
     background-color: #f0f9eb !important; /* 背景颜色 */
     border: 2px solid #e1f3d8 !important; /* 边框颜色 */
     border-radius: 15px !important; /* 圆角效果 */
@@ -499,7 +498,6 @@ let init = {
   }
   /* 黄 弹出框背景颜色 */
   .waring-popup {
-    z-index: 1060;
     background-color: #fdf6ec !important; /* 背景颜色 */
     border: 2px solid #faecd8 !important; /* 边框颜色 */
     border-radius: 15px !important; /* 圆角效果 */
@@ -523,7 +521,6 @@ let init = {
   }
   /* 灰 弹出框背景颜色 */
   .info-popup {
-    z-index: 1070;
     background-color: #edf2fc !important; /* 背景颜色 */
     border: 2px solid #ebeef5 !important; /* 边框颜色 */
     border-radius: 15px !important; /* 圆角效果 */
@@ -547,7 +544,6 @@ let init = {
   }
   /* 红 弹出框背景颜色 */
   .error-popup {
-    z-index: 1080;
     background-color: #fef0f0 !important; /* 背景颜色 */
     border: 2px solid #fde2e2 !important; /* 边框颜色 */
     border-radius: 15px !important; /* 圆角效果 */
@@ -578,8 +574,53 @@ let init = {
     animation: fadeOut 0.5s ease-in-out;
   }
   
-  .swal2-temu {
-    font-size: 25px;
+  .custom-popup {
+    border-radius: 15px !important; /* 圆角效果 */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important; /* 阴影效果 */
+    white-space: nowrap !important;
+    width: 515px !important;
+    height: 655px !important;
+    padding: 20px !important;
+  }
+  .custom-title {
+    font-size: 24px !important; /* 更大的字体 */
+    height: 24px;
+  }
+  .custom-content {
+    font-size: 18px !important; /* 字体大小 */
+    width: 470px !important;
+    height: 500px !important;
+    padding: 0 25px !important;
+  }
+  .custom-content input,select{
+    margin: 0;
+    font-size: 100%;
+    vertical-align: middle;
+    font-family: inherit;
+    width: 150px;
+  }
+  .custom-content label{
+    display: block;
+    font-weight: 700;
+  }
+  .custom-content button{
+    border-radius: 5px;
+    height: 42px;
+    padding: 10px 15px;
+    font-size: 14px !important;
+  }
+  .div-container {
+    display: flex;
+    flex-direction: column;  /* 纵向排列标签和输入框 */
+    gap: 2px;               /* 标签和输入框之间的间距 */
+    padding: 2px;
+  }
+  .custom-button {
+    border-radius: 5px !important; /* 按钮圆角 */
+    height: 42px;
+    padding: 10px 15px;
+    font-weight: 700;
+    font-size: 14px !important;
   }
 
   @keyframes fadeIn {
@@ -608,7 +649,7 @@ let init = {
     },
     showSettingBox() {
         let html =
-            `<div style="font-size: 1em;">
+            `<div class="div-container">
               <label>配送商家检查: 
               <select id="shipAndSoldCheck">
                 <option value="shipsOrSold" ${utils.get('shipAndSoldCheck') === "shipsOrSold" ? "selected" : ""}>配送或商家是亚马逊</option>
@@ -618,6 +659,7 @@ let init = {
                 <option value="notCheck" ${utils.get('shipAndSoldCheck') === "notCheck" ? "selected" : ""}>不检查</option>
               </select>
               </label>
+              </br>
               <label>默认认领店铺: 
               <select id="temuStore">                              
               ${this.stores.map(
@@ -626,17 +668,45 @@ let init = {
                 })}
               </select>
               </label>
-              <label>进入页面直接采集: <input type="checkbox" id="autoCrawl" value=${utils.get('autoCrawl') ? 'checked' : ''} style="width: 100px;"></label>
-              <label>库存不得小于: <input type="text" id="settingStock" value=${utils.get('settingStock')} style="width: 100px;"></label>
-              <label>配送时间多少天: <input type="text" id="settingDelivery" value=${utils.get('settingDelivery')} style="width: 100px;"></label>
-              <label>上架库存数: <input type="text" id="settingStoreStock" value=${utils.get('settingStoreStock')} style="width: 100px;"></label>
-              <label>上架价格乘: <input type="text" id="settingPrice" value=${utils.get('settingPrice')} style="width: 100px;"></label>
-              <label>配置信息快捷键: <input type="text" id="setting_hotkeys" value="${utils.get('setting_hotkeys')}" style="width: 100px;"></label>
-              <label><button class="swal2-confirm swal2-styled" id="checkInfo">查看存储信息</button> <button class="swal2-confirm swal2-styled" id="cleanInfo">清空存储信息</button></label>
+              </br>
+              <label>进入页面直接采集:
+              <input type="checkbox" id="autoCrawl" value=${utils.get('autoCrawl') ? 'checked' : ''}>
+              </label>
+              </br>
+              <label>库存不得小于:
+              <input type="text" id="settingStock" value=${utils.get('settingStock')}>
+              </label>
+              </br>
+              <label>配送时间多少天:
+              <input type="text" id="settingDelivery" value=${utils.get('settingDelivery')}>
+              </label>
+              </br>
+              <label>上架库存数:
+              <input type="text" id="settingStoreStock" value=${utils.get('settingStoreStock')}>
+              </label>
+              </br>
+              <label>上架价格乘:
+              <input type="text" id="settingPrice" value=${utils.get('settingPrice')}>
+              </label>
+              </br>
+              <label>配置信息快捷键:
+              <input type="text" id="setting_hotkeys" value="${utils.get('setting_hotkeys')}">
+              </label>
+              </br>
+              <label>
+              <button class="swal2-confirm swal2-styled" id="checkInfo" >查看存储信息</button>
+              <button class="swal2-confirm swal2-styled" id="cleanInfo">清空存储信息</button>
+              </label>
             </div>`
         Swal.fire({
             title: '基础配置信息', html, // icon: 'info',
             showCloseButton: true, confirmButtonText: '保存', // footer: '页脚',
+            customClass: {
+                popup: "custom-popup", // 自定义弹出框样式
+                title: "custom-title", // 自定义标题颜色
+                content: "custom-content", // 自定义内容文字颜色
+                confirmButton: "custom-button" // 自定义确认按钮颜色
+            }
         }).then(() => {
             utils.isMessageShowing = false
         })
@@ -763,7 +833,7 @@ let dianxiaomi = {
             if (!asins || asins.length === 0) {
                 return
             }
-            let html = ''
+            let trEle = []
             asins.forEach(item => {
                 let selection = document.querySelector(`a[href*=${item}]`)
                 if (selection) {
@@ -771,17 +841,26 @@ let dianxiaomi = {
                     let id = tr.getAttribute("data-id")
                     let title = tr.querySelector(`.productTitle`).innerText
                     let url = tr.lastElementChild.innerHTML.match(/window.open\('(.*)'\);/)[1]
-                    html += `<a href="${url}" target="_blank" name="unprocess" id="${id}-${item}">${title}</a>`
+                    trEle.push(`<tr><th>${item}</th><td id="${id}" value="${item}">编辑</td></tr>`)
+                    // html += `<a href="${url}" target="_blank" name="unprocess" id="${id}-${item}">${title}</a>`
                 }
             })
+            let html = `<table><tbody>${trEle.join('')}</tbody></table>`
             if (html === '') {
                 return
             }
             Swal.fire({
                 title: '需编辑商品', html, // icon: 'info',
-                // showCloseButton: true,
-                // confirmButtonText: '保存',
+                showCloseButton: true,
+                confirmButtonText: '保存',
+                toast: true, // 启用吐司模式
                 // footer: '页脚',
+                customClass: {
+                    popup: "custom-popup", // 自定义弹出框样式
+                    title: "custom-title", // 自定义标题颜色
+                    content: "custom-content", // 自定义内容文字颜色
+                    confirmButton: "custom-button" // 自定义确认按钮颜色
+                }
             }).then(() => {
                 utils.isMessageShowing = false
             })
@@ -949,7 +1028,10 @@ let dianxiaomi = {
                 inputLabel: "请输入品牌名称",
                 showCloseButton: true, confirmButtonText: '保存', // footer: '页脚',
                 customClass: {
-                    popup: "swal2-temu"
+                    popup: "custom-popup", // 自定义弹出框样式
+                    title: "custom-title", // 自定义标题颜色
+                    content: "custom-content", // 自定义内容文字颜色
+                    confirmButton: "custom-button" // 自定义确认按钮颜色
                 }
             }).then((result) => {
                 utils.isMessageShowing = false
@@ -1018,6 +1100,8 @@ let dianxiaomi = {
                 common.count = 0
                 common.selected()
                 common.setSkuInfo()
+                // 等待一秒上述流程处理完毕
+                await utils.sleep(1000)
                 // 点击编辑尺寸
                 document.querySelector(`li[onclick^="IMGRESIZE.modalBuild('skuImgItem', SHEIN_PRODUCT_IMAGE_UP.imageFn.resizeCall, 'shein')"]`).click()
                 let td = document.querySelector(`.resizeImgList`)

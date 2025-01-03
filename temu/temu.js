@@ -113,7 +113,7 @@ let amazon = {
     // 检查库存
     checkStock(rightCol) {
         let fail = true
-        let options = rightCol.querySelectorAll(`#selectQuantity option`)
+        let options = rightCol.querySelectorAll(`select#quantity option`)
         let stockText = rightCol.querySelector(`#availability`)
         if (!stockText || options.length === 0) {
             utils.error("无库存")

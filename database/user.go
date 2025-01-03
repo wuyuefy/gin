@@ -11,10 +11,15 @@ func CreateUser(user *model.User) (result model.User) {
 	return
 }
 func UpdateUser(user *model.User) (result model.User) {
-	db.Where(&user).Find(&result)
+	db.Where(&user).Updates(&result)
 	return
 }
 func DeleteUser(user *model.User) (result model.User) {
-	db.Where(&user).Find(&result)
+	db.Delete(&user)
+	return
+}
+
+func FindUUser2Sql(user *model.User) (result model.User) {
+	db.Raw("select * from user where id = ?", user.Id).Scan(&result)
 	return
 }
